@@ -1796,9 +1796,17 @@ class FailUnderTest(CoverageTest):
                 20.12345,
                 "report --fail-under=20.1235 --precision=5",
                 2,
-                "Coverage failure: total of 20.12345 is less than fail-under=20.12350\n",
+                "Coverage failure: total of 20.12345 is less than fail-under=20.1235\n",
             ),
             (20.12339, "report --fail-under=20.1234 --precision=4", 0, ""),
+            # display_covered clamps near-zero totals up for table display; the
+            # fail-under message must use round() like should_fail_under does.
+            (
+                0.4,
+                "report --fail-under=0.3 --precision=0",
+                2,
+                "Coverage failure: total of 0 is less than fail-under=0.3\n",
+            ),
         ],
     )
     def test_fail_under_with_precision(self, result: float, cmd: str, ret: int, msg: str) -> None:

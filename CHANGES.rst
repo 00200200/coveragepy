@@ -23,6 +23,13 @@ upgrading your version of coverage.py.
 Unreleased
 ----------
 
+- Fix: the ``--fail-under`` failure message now reports the same rounded total
+  used by the pass/fail decision, and leaves the threshold un-rounded, so it
+  can no longer contradict itself (for example claiming "total of 1 is less
+  than fail-under=0"). Closes `issue 2295`_.
+
+.. _issue 2295: https://github.com/coveragepy/coveragepy/issues/2295
+
 - Fix: on Python 3.14 and later, a ``for`` loop completing immediately before a
   function return could mistakenly report an uncovered branch. This is now
   fixed, closing `issue 2168`_.
