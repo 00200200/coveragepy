@@ -47,15 +47,6 @@ def get_long_description(url: str) -> str:
     return long_description
 
 
-def count_contributors() -> int:
-    """Read CONTRIBUTORS.txt to count how many people have helped."""
-    with open("CONTRIBUTORS.txt", "rb") as contributors:
-        paras = contributors.read().split(b"\n\n")
-        num_others = len(paras[-1].splitlines())
-        num_others += 1  # Count Gareth Rees, who is mentioned in the top paragraph.
-    return num_others
-
-
 # PYVERSIONS
 CLASSIFIERS = textwrap.dedent("""\
     Development Status :: 5 - Production/Stable
@@ -201,7 +192,7 @@ setup_args = dict(
     },
     # We need to get HTML assets from our htmlfiles directory.
     zip_safe=False,
-    author=f"Ned Batchelder and {count_contributors()} others",
+    author="Ned Batchelder and many others",
     author_email="ned@nedbatchelder.com",
     description=__doc__,
     long_description=get_long_description(url=version_data["__url__"]),
