@@ -23,7 +23,12 @@ upgrading your version of coverage.py.
 Unreleased
 ----------
 
-Nothing yet.
+- Fix: the ``--fail-under`` failure message could claim something false, such
+  as "total of 1 is less than fail-under=0", when a near-zero total was
+  display-clamped and the threshold was rounded by ``precision``.  The message
+  now reports the same values used by the comparison.  Closes `issue 2295`_.
+
+.. _issue 2295: https://github.com/coveragepy/coveragepy/issues/2295
 
 
 .. start-releases
