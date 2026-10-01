@@ -30,6 +30,11 @@ Unreleased
 
 .. _issue 2314: https://github.com/coveragepy/coveragepy/issues/2314
 
+- Fix: a file pattern (from ``include``, ``omit``, or a ``[paths]`` alias)
+  containing a newline sent the glob-to-regex translation into an infinite
+  loop, hanging the process.  Newlines in patterns are now handled like any
+  other character.
+
 
 .. start-releases
 
