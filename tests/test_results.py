@@ -12,7 +12,13 @@ from typing import cast
 import pytest
 
 from coverage.exceptions import ConfigError
-from coverage.results import Numbers, display_covered, format_fail_under_msg, format_lines, should_fail_under
+from coverage.results import (
+    Numbers,
+    display_covered,
+    format_fail_under_msg,
+    format_lines,
+    should_fail_under,
+)
 from coverage.types import TLineNo
 from tests.coveragetest import CoverageTest
 
