@@ -44,4 +44,6 @@ CAN_MEASURE_BRANCHES = env.PYBEHAVIOR.branch_right_left
 
 # Can we use Hypothesis?
 # As of 6.156.0, PyPy 3.10 is no longer supported.
-USE_HYPOTHESIS = env.CPYTHON or (env.PYVERSION[:2] == (3, 11))
+# So we need a way to let Hypothesis be on or off. To simplify the coverage
+# of both options, we'll use it on half the releases.
+USE_HYPOTHESIS = bool(env.PYVERSION[1] % 2)
