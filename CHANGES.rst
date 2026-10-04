@@ -23,6 +23,8 @@ upgrading your version of coverage.py.
 Unreleased
 ----------
 
+- Dropped support for Python 3.10.
+
 - Fix: a comment or string that merely mentioned ``if True:`` or
   ``while True:`` could mark its line as a branch that is known to be partial,
   so a branch that never ran was reported as taken.  These built-in patterns
