@@ -23,6 +23,8 @@ upgrading your version of coverage.py.
 Unreleased
 ----------
 
+- Dropped support for Python 3.10.
+
 - Fix: the ``--fail-under`` failure message could claim something false, such
   as "total of 1 is less than fail-under=0", when a near-zero total was
   display-clamped and the threshold was rounded by ``precision``.  The message
