@@ -493,6 +493,7 @@ CTracer_handle_call(CTracer *self, PyFrameObject *frame)
         if (res == NULL) {
             goto error;
         }
+        Py_DECREF(res);
 
         file_data = PyDict_GetItem(self->data, tracename);
 
@@ -532,6 +533,7 @@ CTracer_handle_call(CTracer *self, PyFrameObject *frame)
         if (res == NULL) {
             goto error;
         }
+        Py_DECREF(res);
 
         if (had_error) {
             goto error;

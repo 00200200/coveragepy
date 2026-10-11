@@ -44,6 +44,10 @@ Unreleased
   loop, hanging the process.  Newlines in patterns are now handled like any
   other character.
 
+- Fix: using the C tracer, the refcount of ``None`` was mismanaged during
+  function calls, including comprehensions. This was unlikely to cause an
+  actual problem, but is now fixed. Thanks, Andrew Dalke.
+
 - Binary wheels are now provided for iOS and Android. This allows the use of
   the optimized C tracer on mobile platforms.
 

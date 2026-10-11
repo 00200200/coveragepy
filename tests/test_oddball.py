@@ -252,6 +252,25 @@ class MemoryFumblingTest(CoverageTest):
     """Test that we properly manage the None refcount."""
 
     @pytest.mark.skipif(not testenv.C_TRACER, reason="Only the C tracer has refcounting issues")
+    def test_miscounting_none(self) -> None:
+        self.make_file(
+            "nones.py",
+            """\
+            import sys
+
+            def f(): ...
+
+            n1 = sys.getrefcount(None)
+            for _ in range(100):
+                f()
+            n2 = sys.getrefcount(None)
+            print(f"None count diff: {n2-n1}")
+            """,
+        )
+        out = self.run_command("coverage run nones.py")
+        assert out == "None count diff: 0\n"
+
+    @pytest.mark.skipif(not testenv.C_TRACER, reason="Only the C tracer has refcounting issues")
     def test_dropping_none(self) -> None:  # pragma: not covered
         # TODO: Mark this so it will only be run sometimes.
         pytest.skip("This is too expensive for now (30s)")
