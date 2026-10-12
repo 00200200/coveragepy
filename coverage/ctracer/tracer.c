@@ -489,6 +489,7 @@ CTracer_handle_call(CTracer *self, PyFrameObject *frame)
         PyObject * file_data = NULL;
         BOOL had_error = FALSE;
         PyObject * res;
+        PyObject * exc;
 
         res = PyObject_CallFunctionObjArgs(self->lock_data, NULL);
         if (res == NULL) {
@@ -525,12 +526,19 @@ CTracer_handle_call(CTracer *self, PyFrameObject *frame)
 
         unlock:
 
+        /* Python code can't be called with an exception set, so hold any
+         * error aside while unlocking.
+         */
+        exc = MyErr_GetRaisedException();
         res = PyObject_CallFunctionObjArgs(self->unlock_data, NULL);
         if (res == NULL) {
+            /* As with try/finally, an error while unlocking wins. */
+            Py_XDECREF(exc);
             Py_XDECREF(file_data);
             goto error;
         }
         Py_DECREF(res);
+        MyErr_SetRaisedException(exc);
 
         if (had_error) {
             Py_XDECREF(file_data);

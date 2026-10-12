@@ -303,6 +303,54 @@ class MemoryFumblingTest(CoverageTest):
         # 1000 leaked objects would be at least 72K.
         assert after - before < 10_000
 
+    @pytest.mark.skipif(not testenv.C_TRACER, reason="Only the C tracer has this issue")
+    def test_ctracer_unlocks_without_pending_error(self) -> None:
+        # unlock_data used to be called with the error still set, so Python
+        # replaced the real error with a SystemError.
+        self.make_file(
+            "bad_key.py",
+            """\
+            import sys
+            from coverage.tracer import CTracer, CFileDisposition
+
+            class BadKey(str):
+                def __hash__(self):
+                    raise ValueError("can't hash BadKey")
+
+            disp = CFileDisposition()
+            disp.original_filename = disp.canonical_filename = __file__
+            disp.source_filename = BadKey(__file__)
+            disp.trace = True
+            disp.reason = ""
+            disp.file_tracer = None
+            disp.has_dynamic_filename = False
+
+            tracer = CTracer()
+            tracer.data = {}
+            tracer.should_trace_cache = {__file__: disp}
+            tracer.trace_arcs = False
+            tracer.should_trace = None
+            tracer.concur_id_func = None
+            tracer.should_start_context = None
+            tracer.lock_data = lambda: None
+            tracer.unlock_data = lambda: None
+
+            def f():
+                pass
+
+            sys.settrace(tracer.start())
+            try:
+                f()
+            except Exception as exc:
+                print(f"{type(exc).__name__}: {exc}")
+            finally:
+                tracer.stop()
+                sys.settrace(None)
+            """,
+        )
+        out = self.run_command("python bad_key.py")
+        assert out == "ValueError: can't hash BadKey\n"
+
     @pytest.mark.skipif(not testenv.C_TRACER, reason="Only the C tracer has refcounting issues")
     def test_dropping_none(self) -> None:  # pragma: not covered
         # TODO: Mark this so it will only be run sometimes.

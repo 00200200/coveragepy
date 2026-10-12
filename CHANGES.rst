@@ -55,6 +55,9 @@ Unreleased
 - Fix: the C tracer held borrowed references to dictionary values, which was
   unsafe on free-threaded Python.  Now it takes its own references.
 
+- Fix: using the C tracer, an internal error while recording a new file could
+  be reported as a confusing ``SystemError`` instead of the actual exception.
+
 - Binary wheels are now provided for iOS and Android. This allows the use of
   the optimized C tracer on mobile platforms.
 

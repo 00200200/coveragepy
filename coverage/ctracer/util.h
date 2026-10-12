@@ -64,6 +64,39 @@
 #define MyCode_FreeCode(code)
 #endif
 
+#if PY_VERSION_HEX >= 0x030C0000
+#define MyErr_GetRaisedException()      (PyErr_GetRaisedException())
+#define MyErr_SetRaisedException(exc)   (PyErr_SetRaisedException(exc))
+#else
+// Backports of the 3.12 API, implemented as CPython 3.12 does.
+static inline PyObject *
+MyErr_GetRaisedException(void)
+{
+    PyObject *type, *value, *tb;
+    PyErr_Fetch(&type, &value, &tb);
+    if (type == NULL) {
+        return NULL;
+    }
+    PyErr_NormalizeException(&type, &value, &tb);
+    if (tb != NULL) {
+        PyException_SetTraceback(value, tb);
+    }
+    Py_DECREF(type);
+    Py_XDECREF(tb);
+    return value;
+}
+
+static inline void
+MyErr_SetRaisedException(PyObject *exc)
+{
+    if (exc == NULL) {
+        PyErr_Clear();
+        return;
+    }
+    PyErr_Restore(Py_NewRef(Py_TYPE(exc)), exc, PyException_GetTraceback(exc));
+}
+#endif
+
 #if PY_VERSION_HEX >= 0x030D0000
 #define MyDict_GetItemRef(d, k, pv)     (PyDict_GetItemRef((d), (k), (pv)))
 #else
