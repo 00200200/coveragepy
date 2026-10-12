@@ -203,6 +203,7 @@ def coverage_command_fixture(request: pytest.FixtureRequest) -> str:
     bool(os.getenv("COVERAGE_PIP_ARGS")),
     reason="COVERAGE_PIP_ARGS setting means we shouldn't try pip",
 )
+@pytest.mark.xfail(testenv.NO_NETWORK, reason="Installing packages needs the network")
 class VirtualenvTest(CoverageTest):
     """Tests of virtualenv considerations."""
 

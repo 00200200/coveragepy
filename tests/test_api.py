@@ -482,7 +482,14 @@ class ApiTest(CoverageTest):
 
     @pytest.mark.parametrize(
         "problem, msgpattern",
-        [("badcontent", BAD_SQLITE_REGEX), ("noperms", NO_OPEN_REGEX)],
+        [
+            ("badcontent", BAD_SQLITE_REGEX),
+            pytest.param(
+                "noperms",
+                NO_OPEN_REGEX,
+                marks=pytest.mark.xfail(testenv.ROOT_USER, reason="root can read any file"),
+            ),
+        ],
     )
     def test_combining_bad_data(self, problem: str, msgpattern: str) -> None:
         # If you try to combine a bad data file, then you will get a warning,
