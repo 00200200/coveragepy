@@ -64,6 +64,22 @@
 #define MyCode_FreeCode(code)
 #endif
 
+#if PY_VERSION_HEX >= 0x030D0000
+#define MyDict_GetItemRef(d, k, pv)     (PyDict_GetItemRef((d), (k), (pv)))
+#else
+// Backport of the 3.13 API.
+static inline int
+MyDict_GetItemRef(PyObject *dict, PyObject *key, PyObject **pvalue)
+{
+    *pvalue = PyDict_GetItemWithError(dict, key);
+    if (*pvalue == NULL) {
+        return PyErr_Occurred() ? -1 : 0;
+    }
+    Py_INCREF(*pvalue);
+    return 1;
+}
+#endif
+
 // Where does frame.f_lasti point when yielding from a generator?
 // It used to point at the YIELD, in 3.13 it points at the RESUME,
 // then it went back to the YIELD.

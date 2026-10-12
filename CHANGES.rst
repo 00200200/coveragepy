@@ -52,6 +52,9 @@ Unreleased
   raised an exception, lines in that function could be recorded as belonging
   to a different file.  Also fixed some minor memory leaks in the C tracer.
 
+- Fix: the C tracer held borrowed references to dictionary values, which was
+  unsafe on free-threaded Python.  Now it takes its own references.
+
 - Binary wheels are now provided for iOS and Android. This allows the use of
   the optimized C tracer on mobile platforms.
 
