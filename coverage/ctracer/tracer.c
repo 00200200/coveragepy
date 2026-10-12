@@ -94,6 +94,7 @@ CTracer_dealloc(CTracer *self)
     Py_XDECREF(self->data);
     Py_XDECREF(self->file_tracers);
     Py_XDECREF(self->should_trace_cache);
+    Py_XDECREF(self->trace_arcs);
     Py_XDECREF(self->should_start_context);
     Py_XDECREF(self->switch_context);
     Py_XDECREF(self->lock_data);
@@ -444,10 +445,14 @@ CTracer_handle_call(CTracer *self, PyFrameObject *frame)
                  * warning and a traceback.
                  */
                 CTracer_disable_plugin(self, disposition);
-                /* Because we handled the error, goto ok. */
-                goto ok;
+                /* We handled the error, but the stack entry still needs to be
+                 * set up, so continue as if we aren't tracing this frame.
+                 */
+                tracename = Py_None;
             }
-            tracename = next_tracename;
+            else {
+                tracename = next_tracename;
+            }
 
             if (tracename != Py_None) {
                 /* Check the dynamic source filename against the include rules. */
@@ -485,7 +490,7 @@ CTracer_handle_call(CTracer *self, PyFrameObject *frame)
     }
 
     if (tracename != Py_None) {
-        PyObject * file_data;
+        PyObject * file_data = NULL;
         BOOL had_error = FALSE;
         PyObject * res;
 
@@ -531,11 +536,13 @@ CTracer_handle_call(CTracer *self, PyFrameObject *frame)
 
         res = PyObject_CallFunctionObjArgs(self->unlock_data, NULL);
         if (res == NULL) {
+            Py_XDECREF(file_data);
             goto error;
         }
         Py_DECREF(res);
 
         if (had_error) {
+            Py_XDECREF(file_data);
             goto error;
         }
 
@@ -582,7 +589,6 @@ CTracer_handle_call(CTracer *self, PyFrameObject *frame)
         self->pcur_entry->last_line = PyFrame_GetLineNumber(frame);
     }
 
-ok:
     ret = RET_OK;
 
 error:

@@ -271,6 +271,39 @@ class MemoryFumblingTest(CoverageTest):
         assert out == "None count diff: 0\n"
 
     @pytest.mark.skipif(not testenv.C_TRACER, reason="Only the C tracer has refcounting issues")
+    def test_ctracer_releases_trace_arcs(self) -> None:
+        # CTracer is only sometimes importable when pylint runs.
+        # pylint: disable=import-error, no-name-in-module, useless-suppression
+        from coverage.tracer import CTracer
+
+        trace_arcs = object()
+        before = sys.getrefcount(trace_arcs)
+        for _ in range(100):
+            tracer = CTracer()
+            tracer.trace_arcs = trace_arcs
+            del tracer
+        assert sys.getrefcount(trace_arcs) == before
+
+    @pytest.mark.skipif(not testenv.C_TRACER, reason="Only the C tracer has refcounting issues")
+    def test_cfiledisposition_frees_memory(self) -> None:
+        import tracemalloc  # PyPy doesn't have tracemalloc.
+
+        # CTracer is only sometimes importable when pylint runs.
+        # pylint: disable=import-error, no-name-in-module, useless-suppression
+        from coverage.tracer import CFileDisposition
+
+        tracemalloc.start()
+        try:
+            before, _ = tracemalloc.get_traced_memory()
+            for _ in range(1000):
+                CFileDisposition()
+            after, _ = tracemalloc.get_traced_memory()
+        finally:
+            tracemalloc.stop()
+        # 1000 leaked objects would be at least 72K.
+        assert after - before < 10_000
+
+    @pytest.mark.skipif(not testenv.C_TRACER, reason="Only the C tracer has refcounting issues")
     def test_dropping_none(self) -> None:  # pragma: not covered
         # TODO: Mark this so it will only be run sometimes.
         pytest.skip("This is too expensive for now (30s)")

@@ -48,6 +48,10 @@ Unreleased
   function calls, including comprehensions. This was unlikely to cause an
   actual problem, but is now fixed. Thanks, Andrew Dalke.
 
+- Fix: using the C tracer, if a plugin's ``dynamic_source_filename`` method
+  raised an exception, lines in that function could be recorded as belonging
+  to a different file.  Also fixed some minor memory leaks in the C tracer.
+
 - Binary wheels are now provided for iOS and Android. This allows the use of
   the optimized C tracer on mobile platforms.
 
