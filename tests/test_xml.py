@@ -9,6 +9,7 @@ import os
 import os.path
 import re
 from collections.abc import Iterable
+from contextlib import chdir
 from typing import Any
 from xml.etree import ElementTree
 
@@ -22,7 +23,7 @@ from coverage.files import abs_file
 from coverage.misc import import_local_file
 from tests.coveragetest import CoverageTest
 from tests.goldtest import compare, gold_path
-from tests.helpers import assert_coverage_warnings, change_dir
+from tests.helpers import assert_coverage_warnings
 
 
 class XmlTestHelpers(CoverageTest):
@@ -300,7 +301,7 @@ class XmlReportTest(XmlTestHelpers, CoverageTest):
     def test_nonascii_directory(self) -> None:
         # https://github.com/coveragepy/coveragepy/issues/573
         self.make_file("테스트/program.py", "a = 1")
-        with change_dir("테스트"):
+        with chdir("테스트"):
             cov = coverage.Coverage()
             self.start_import_stop(cov, "program")
             cov.xml_report()
