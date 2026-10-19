@@ -85,7 +85,7 @@ class LcovTest(CoverageTest):
             end_of_record
             """)
         self.assert_doesnt_exist(".coverage")
-        cov = coverage.Coverage(source=["."])
+        cov = coverage.Coverage()
         self.start_import_stop(cov, "main_file")
         pct = cov.lcov_report()
         assert pct == 50.0
@@ -105,7 +105,7 @@ class LcovTest(CoverageTest):
         )
         self.make_file(".coveragerc", "[lcov]\nline_checksums = true\n")
         self.assert_doesnt_exist(".coverage")
-        cov = coverage.Coverage(source=["."])
+        cov = coverage.Coverage()
         self.start_import_stop(cov, "main_file")
         pct = cov.lcov_report()
         assert pct == 50.0
@@ -155,7 +155,7 @@ class LcovTest(CoverageTest):
         self.create_initial_files()
         self.assert_doesnt_exist(".coverage")
         self.make_file(".coveragerc", "[lcov]\noutput = data.lcov\n")
-        cov = coverage.Coverage(source=".")
+        cov = coverage.Coverage()
         self.start_import_stop(cov, "test_file")
         pct = cov.lcov_report()
         assert pct == 50.0
@@ -208,7 +208,7 @@ class LcovTest(CoverageTest):
             """,
         )
         self.assert_doesnt_exist(".coverage")
-        cov = coverage.Coverage(branch=True, source=".")
+        cov = coverage.Coverage(branch=True)
         self.start_import_stop(cov, "main_file")
         pct = cov.lcov_report()
         assert math.isclose(pct, 16.666666666666668)
@@ -261,7 +261,7 @@ class LcovTest(CoverageTest):
             """,
         )
         self.assert_doesnt_exist(".coverage")
-        cov = coverage.Coverage(branch=True, source=".")
+        cov = coverage.Coverage(branch=True)
         self.start_import_stop(cov, "test_file")
         pct = cov.lcov_report()
         assert math.isclose(pct, 41.666666666666664)
@@ -316,7 +316,7 @@ class LcovTest(CoverageTest):
             """,
         )
         self.assert_doesnt_exist(".coverage")
-        cov = coverage.Coverage(branch=True, source=".")
+        cov = coverage.Coverage(branch=True)
         self.start_import_stop(cov, "main_file")
         pct = cov.lcov_report()
         assert math.isclose(pct, 66.66666666666667)
@@ -343,7 +343,7 @@ class LcovTest(CoverageTest):
         # coverage record.
         self.make_file("__init__.py", "")
         self.assert_doesnt_exist(".coverage")
-        cov = coverage.Coverage(branch=True, source=".")
+        cov = coverage.Coverage(branch=True)
         self.start_import_stop(cov, "__init__")
         pct = cov.lcov_report()
         assert pct == 0.0
@@ -362,7 +362,7 @@ class LcovTest(CoverageTest):
         self.make_file("__init__.py", "")
         self.make_file(".coveragerc", "[report]\nskip_empty = True\n")
         self.assert_doesnt_exist(".coverage")
-        cov = coverage.Coverage(branch=True, source=".")
+        cov = coverage.Coverage(branch=True)
         self.start_import_stop(cov, "__init__")
         pct = cov.lcov_report()
         assert pct == 0.0
@@ -392,7 +392,7 @@ class LcovTest(CoverageTest):
             # line 8
             """,
         )
-        cov = coverage.Coverage(source=".", branch=True)
+        cov = coverage.Coverage(branch=True)
         self.start_import_stop(cov, "runme")
         cov.lcov_report()
         expected_result = textwrap.dedent("""\
@@ -443,7 +443,7 @@ class LcovTest(CoverageTest):
             assert Concrete().excluded_abstract() == 2
             """,
         )
-        cov = coverage.Coverage(source=".")
+        cov = coverage.Coverage()
         self.start_import_stop(cov, "runme")
         cov.lcov_report()
         expected_result = textwrap.dedent("""\
@@ -490,7 +490,7 @@ class LcovTest(CoverageTest):
             assert x == 1
             """,
         )
-        cov = coverage.Coverage(source=".")
+        cov = coverage.Coverage()
         self.start_import_stop(cov, "runme")
         cov.lcov_report()
         expected_result = textwrap.dedent("""\
@@ -520,7 +520,7 @@ class LcovTest(CoverageTest):
             foo([0])
         """,
         )
-        cov = coverage.Coverage(source=".", branch=True)
+        cov = coverage.Coverage(branch=True)
         self.start_import_stop(cov, "runme")
         cov.lcov_report()
         expected_result = textwrap.dedent("""\
@@ -560,7 +560,7 @@ class LcovTest(CoverageTest):
             foo([0,-1])
         """,
         )
-        cov = coverage.Coverage(source=".", branch=True)
+        cov = coverage.Coverage(branch=True)
         self.start_import_stop(cov, "runme")
         cov.lcov_report()
         expected_result = textwrap.dedent("""\
@@ -598,7 +598,7 @@ class LcovTest(CoverageTest):
             foo([0])
         """,
         )
-        cov = coverage.Coverage(source=".", branch=True)
+        cov = coverage.Coverage(branch=True)
         self.start_import_stop(cov, "runme")
         cov.lcov_report()
         expected_result = textwrap.dedent("""\
@@ -634,7 +634,7 @@ class LcovTest(CoverageTest):
             foo([1,2])
         """,
         )
-        cov = coverage.Coverage(source=".", branch=True)
+        cov = coverage.Coverage(branch=True)
         self.start_import_stop(cov, "runme")
         cov.lcov_report()
         expected_result = textwrap.dedent("""\
@@ -668,7 +668,7 @@ class LcovTest(CoverageTest):
                     print(f"{a!r} has positives")
         """,
         )
-        cov = coverage.Coverage(source=".", branch=True)
+        cov = coverage.Coverage(branch=True)
         self.start_import_stop(cov, "runme")
         cov.lcov_report()
         expected_result = textwrap.dedent("""\
@@ -704,7 +704,7 @@ class LcovTest(CoverageTest):
                 pass
         """,
         )
-        cov = coverage.Coverage(source=".", branch=True)
+        cov = coverage.Coverage(branch=True)
         self.start_import_stop(cov, "always_raise")
         cov.lcov_report()
         expected_result = textwrap.dedent("""\
@@ -737,7 +737,7 @@ class LcovTest(CoverageTest):
                     print("got here")
             """,
         )
-        cov = coverage.Coverage(source=".", branch=True)
+        cov = coverage.Coverage(branch=True)
         self.start_import_stop(cov, "multi")
         cov.lcov_report()
         lcov = self.get_lcov_report_content()
@@ -755,7 +755,7 @@ class LcovTest(CoverageTest):
                 foo()
             """,
         )
-        cov = coverage.Coverage(source=".", branch=True)
+        cov = coverage.Coverage(branch=True)
         self.start_import_stop(cov, "modexit")
         cov.lcov_report()
         lcov = self.get_lcov_report_content()
