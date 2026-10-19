@@ -33,6 +33,9 @@ Unreleased
   so a branch that never ran was reported as taken.  These built-in patterns
   now only match at the start of the statement.  Closes `issue 2314`_.
 
+- Fix: region detection missed functions defined in unusual places, such as
+  ``else`` and ``except`` clauses. This is now fixed.
+
 - Fixes for obscure but legal file names:
 
   - File names (and plugin names) can contain control characters, which are
