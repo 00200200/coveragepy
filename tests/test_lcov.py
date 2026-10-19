@@ -14,6 +14,7 @@ import pytest
 import coverage
 from coverage import env
 from tests.coveragetest import CoverageTest
+from tests.helpers import re_lines_text
 
 
 class LcovTest(CoverageTest):
@@ -759,5 +760,51 @@ class LcovTest(CoverageTest):
         self.start_import_stop(cov, "modexit")
         cov.lcov_report()
         lcov = self.get_lcov_report_content()
-        print(lcov)
         assert "BRDA:5,0,exit the module,1" in lcov
+
+    def test_no_duplicate_names(self) -> None:
+        # Multiple functions can have the same name, but newer lcov versions
+        # don't allow duplicated names.
+        self.make_file(
+            "getter_setter.py",
+            """\
+            class C:
+                @property
+                def x(self):
+                    return 4
+
+                @x.setter
+                def x(self, value):
+                    pass
+
+            c = C()
+            c.x = c.x
+
+            for i in range(2):
+                if i:
+                    def maybe():
+                        return 16
+                    maybe()
+                else:
+                    def maybe():
+                        return 20
+                    maybe()
+            """,
+        )
+        cov = coverage.Coverage()
+        self.start_import_stop(cov, "getter_setter")
+        cov.lcov_report()
+        expected_result = textwrap.dedent("""\
+            FN:3,4,C.x
+            FNDA:1,C.x
+            FN:7,8,C.x@7
+            FNDA:1,C.x@7
+            FN:15,16,maybe
+            FNDA:1,maybe
+            FN:19,20,maybe@19
+            FNDA:1,maybe@19
+            FNF:4
+            FNH:4
+            """)
+        actual_result = re_lines_text("^FN", self.get_lcov_report_content())
+        assert expected_result == actual_result

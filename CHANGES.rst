@@ -36,6 +36,12 @@ Unreleased
 - Fix: region detection missed functions defined in unusual places, such as
   ``else`` and ``except`` clauses. This is now fixed.
 
+- Fix: recent versions of the lcov tool complain if the same function name
+  appears more than once in a report. Python can have multiple same-named
+  functions in a few ways, for example, getters/setters or conditionally
+  defined function. These are now disambiguated by adding a ``@<line number>``
+  suffix to the function name. Fixes `issue 2335`.
+
 - Fixes for obscure but legal file names:
 
   - File names (and plugin names) can contain control characters, which are
@@ -76,6 +82,7 @@ Unreleased
 
 .. _issue 2277: https://github.com/coveragepy/coveragepy/issues/2277
 .. _issue 2314: https://github.com/coveragepy/coveragepy/issues/2314
+.. _issue 2335: https://github.com/coveragepy/coveragepy/issues/2335
 
 
 .. start-releases
