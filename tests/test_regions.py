@@ -212,8 +212,8 @@ def test_statement_fields() -> None:
         for field, ftype in getattr(cls, "_field_types", {}).items():
             if typing.get_origin(ftype) is list:
                 (elt_type,) = typing.get_args(ftype)
-                if isinstance(elt_type, type):
-                    fields[field] = elt_type
+                assert isinstance(elt_type, type), f"Expected a type, got {elt_type}"
+                fields[field] = elt_type
         return fields
 
     def holds_statements(elt_type: type) -> bool:
