@@ -28,6 +28,12 @@ Unreleased
 - Binary wheels are now provided for iOS and Android. This allows the use of
   the optimized C tracer on mobile platforms.
 
+- Fix: three or more levels of nested ``with`` statements could make a ``with``
+  line look like a branch with an exit that can never happen. Using the
+  sys.monitoring core, these phantom branches were reported as partial. Other
+  cores hid the problem but still counted the phantom branches in the total.
+  Closes `issue 1987`_.
+
 - Fix: a comment or string that merely mentioned ``if True:`` or
   ``while True:`` could mark its line as a branch that is known to be partial,
   so a branch that never ran was reported as taken.  These built-in patterns
@@ -85,6 +91,7 @@ Unreleased
 
 - Performance: HTML reports should be about 5% faster to produce.
 
+.. _issue 1987: https://github.com/coveragepy/coveragepy/issues/1987
 .. _issue 2277: https://github.com/coveragepy/coveragepy/issues/2277
 .. _issue 2314: https://github.com/coveragepy/coveragepy/issues/2314
 .. _issue 2335: https://github.com/coveragepy/coveragepy/issues/2335
