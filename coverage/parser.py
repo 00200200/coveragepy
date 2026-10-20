@@ -134,7 +134,7 @@ class PythonParser:
         # Lazily-created arc data, and missing arc descriptions.
         self._all_arcs: set[TArc] | None = None
         self._missing_arc_fragments: TArcFragments | None = None
-        self._with_jump_fixers: dict[TArc, tuple[TArc, TArc]] = {}
+        self._with_jump_fixers: dict[TArc, TArc | None] = {}
 
         self._first_line_cache: dict[TLineNo, TLineNo] = {}
         self._exit_counts: dict[TLineNo, int] | None = None
@@ -381,31 +381,17 @@ class PythonParser:
         it to the user as if it had been 1, 2, 3, 4.  The arc 3->1 should be
         replaced with 3->4, and 1->4 should be removed.
 
-        For this code, the fixers dict is {(3, 1): ((1, 4), (3, 4))}.  The key
-        is the actual measured arc from the end of the with block back to the
-        start of the with-statement.  The values are start_next (the with
-        statement to the next statement after the with), and end_next (the end
-        of the with-statement to the next statement after the with).
-
-        With nested with-statements, we have to trace through a few levels to
-        correct a longer chain of arcs.
+        For this code, the fixers dict is {(3, 1): (3, 4), (1, 4): None}.  The
+        keys are arcs to adjust.  The values are the arcs to use instead, or
+        None if the arc should be removed.
 
         """
-        to_remove = set()
-        to_add = set()
+        fixed = set()
         for arc in arcs:
-            if arc in self._with_jump_fixers:
-                end0 = arc[0]
-                to_remove.add(arc)
-                start_next, end_next = self._with_jump_fixers[arc]
-                while start_next in self._with_jump_fixers:
-                    to_remove.add(start_next)
-                    start_next, end_next = self._with_jump_fixers[start_next]
-                    to_remove.add(end_next)
-                to_add.add((end0, end_next[1]))
-                to_remove.add(start_next)
-        arcs = (set(arcs) | to_add) - to_remove
-        return arcs
+            new_arc = self._with_jump_fixers.get(arc, arc)
+            if new_arc is not None:
+                fixed.add(new_arc)
+        return fixed
 
     def exit_counts(self) -> dict[TLineNo, int]:
         """Get a count of exits from that each line.
@@ -771,30 +757,48 @@ class AstArcAnalyzer:
             elif isinstance(node, ast.Module):
                 self._code_object__Module(node)
 
-    def with_jump_fixers(self) -> dict[TArc, tuple[TArc, TArc]]:
+    def with_jump_fixers(self) -> dict[TArc, TArc | None]:
         """Get a dict with data for fixing jumps out of with statements.
 
-        Returns a dict.  The keys are arcs leaving a with-statement by jumping
-        back to its start.  The values are pairs: first, the arc from the start
-        to the next statement, then the arc that exits the with without going
-        to the start.
+        Returns a dict.  The keys are arcs that need adjusting: arcs jumping
+        back to the start of a with-statement at the end of its body, and arcs
+        from the start of a with-statement to the next statement.  The values
+        are the arcs to use instead, or None if the arc should be removed.
 
         """
-        fixers = {}
         with_nexts = {
             arc
             for arc in self.arcs
             if arc[0] in self.all_with_starts and arc not in self.with_entries
         }
+        nexts: dict[TLineNo, TLineNo] = {}
         for start in self.all_with_starts:
-            nexts = {arc[1] for arc in with_nexts if arc[0] == start}
-            if not nexts:
+            start_nexts = {arc[1] for arc in with_nexts if arc[0] == start}
+            if not start_nexts:
                 continue
-            assert len(nexts) == 1, f"Expected one arc, got {nexts} with {start = }"
-            nxt = nexts.pop()
-            ends = {arc[0] for arc in self.with_exits if arc[1] == start}
-            for end in ends:
-                fixers[(end, start)] = ((start, nxt), (end, nxt))
+            assert len(start_nexts) == 1, f"Expected one arc, got {start_nexts} with {start = }"
+            nexts[start] = start_nexts.pop()
+
+        def final_next(start: TLineNo) -> TLineNo:
+            # A with-statement ending the body of an outer with-statement jumps
+            # to the start of the outer one, which then jumps to its own next
+            # statement, and so on.  We want where the chain finally lands.
+            nxt = nexts[start]
+            while (start, nxt) in self.with_exits and nxt in nexts:
+                start, nxt = nxt, nexts[nxt]
+            return nxt
+
+        fixers: dict[TArc, TArc | None] = {}
+        for end, start in self.with_exits:
+            fixers[(end, start)] = (end, final_next(start))
+        for start, nxt in nexts.items():
+            # Leaving a body on its own lines jumps back to the start, and that
+            # jump is fixed above, so the arc onward from the start is
+            # redundant, even when it's an inner with jumping to an outer one.
+            # A body on the same line as the start doesn't jump back, so the
+            # arc onward from the start is the only record of leaving the with.
+            if (start, start) not in self.with_exits:
+                fixers[(start, nxt)] = None
         return fixers
 
     # Code object dispatchers: _code_object__*

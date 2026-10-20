@@ -33,10 +33,16 @@ Unreleased
   display-clamped and the threshold was rounded by ``precision``.  The message
   now reports the same values used by the comparison.  Closes `issue 2295`_.
 
+- Fix: three or more levels of nested ``with`` statements could make a ``with``
+  line look like a branch with an exit that can never happen. Using the
+  sys.monitoring core, these phantom branches were reported as partial. Other
+  cores hid the problem but still counted the phantom branches in the total.
+  Closes `issue 1987`_.
+
 - Fix: a comment or string that merely mentioned ``if True:`` or
   ``while True:`` could mark its line as a branch that is known to be partial,
   so a branch that never ran was reported as taken.  These built-in patterns
-  now only match at the start of the statement.  Closes `issue 2314`_.
+  now only match at the start of the statement. Closes `issue 2314`_.
 
 - Fix: region detection missed functions defined in unusual places, such as
   ``else`` and ``except`` clauses. This is now fixed.
@@ -44,8 +50,13 @@ Unreleased
 - Fix: recent versions of the lcov tool complain if the same function name
   appears more than once in a report. Python can have multiple same-named
   functions in a few ways, for example, getters/setters or conditionally
-  defined function. These are now disambiguated by adding a ``@<line number>``
+  defined functions. These are now disambiguated by adding a ``@<line number>``
   suffix to the function name. Fixes `issue 2335`.
+
+- Fix: The "Can't combine statement coverage data with branch data" error now
+  names the two data files it couldn't combine. The :ref:`error description
+  <error_cant_combine>` in the docs now lists common causes and how to find the
+  process that wrote the file.
 
 - Fixes for obscure but legal file names:
 
@@ -59,13 +70,13 @@ Unreleased
 
   - A file pattern (from ``include``, ``omit``, or a ``[paths]`` alias)
     containing a newline sent the glob-to-regex translation into an infinite
-    loop, hanging the process.  Newlines in patterns are now handled like any
+    loop, hanging the process. Newlines in patterns are now handled like any
     other character.
 
 - Fixes in the implementation of the C tracer:
 
   - If a plugin's ``dynamic_source_filename`` method raised an exception, lines
-    in that function could be recorded as belonging to a different file.  Also
+    in that function could be recorded as belonging to a different file. Also
     fixed some minor memory leaks in the C tracer.
 
   - The refcount of ``None`` was mismanaged during function calls, including
@@ -81,10 +92,11 @@ Unreleased
 - Performance: the text summary report (``coverage report``) held on to every
   file's parsed source until it finished, so its memory use grew with the size
   of the project: ten times or more what 7.14 used on large projects.  Now it
-  keeps only what it needs to print.  Fixes `issue 2277`_.
+  keeps only what it needs to print. Fixes `issue 2277`_.
 
 - Performance: HTML reports should be about 5% faster to produce.
 
+.. _issue 1987: https://github.com/coveragepy/coveragepy/issues/1987
 .. _issue 2277: https://github.com/coveragepy/coveragepy/issues/2277
 .. _issue 2295: https://github.com/coveragepy/coveragepy/issues/2295
 .. _issue 2314: https://github.com/coveragepy/coveragepy/issues/2314
