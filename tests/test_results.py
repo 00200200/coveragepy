@@ -113,6 +113,14 @@ class NumbersTest(CoverageTest):
         (0.001, 0, 0, False),
         # very small fail_under is possible to fail.
         (0.001, 0.01, 0, True),
+        # Fractional thresholds imply enough precision to compare their digits.
+        (0.4, 0.3, 0, False),
+        (0.3, 0.3, 0, False),
+        (0.4, 0.5, 0, True),
+        (0.04, 0.03, 0, False),
+        (0.04, 0.05, 0, True),
+        (4e-7, 3e-7, 0, False),
+        (4e-7, 5e-7, 0, True),
         # Rounding should work properly.
         (42.1, 42, 0, False),
         (42.1, 43, 0, True),
@@ -121,8 +129,9 @@ class NumbersTest(CoverageTest):
         (42.857, 44, 0, True),
         (42.857, 42.856, 3, False),
         (42.857, 42.858, 3, True),
-        # If you don't specify precision, your fail-under is rounded.
+        # Threshold precision also applies when report precision is lower.
         (42.857, 42.856, 0, False),
+        (42.857, 42.858, 0, True),
         # Values near 100 should only be treated as 100 if they are 100.
         (99.8, 100, 0, True),
         (100.0, 100, 0, False),
@@ -147,7 +156,11 @@ def test_should_fail_under_invalid_value() -> None:
     [
         # Issue 2295: display_covered clamps near-zero totals up, and formatting
         # fail_under with precision can round it to 0, yielding a false claim.
-        (0.4, 0.3, 0, "total of 0 is less than fail-under=0.3"),
+        (0.4, 0.5, 0, "total of 0.4 is less than fail-under=0.5"),
+        (0.04, 0.05, 0, "total of 0.04 is less than fail-under=0.05"),
+        (4e-7, 5e-7, 0, "total of 0.0000004 is less than fail-under=0.0000005"),
+        (0.4, 0.5, 3, "total of 0.400 is less than fail-under=0.500"),
+        (20.12345678, 20.12345679, 0, "total of 20.12345678 is less than fail-under=20.12345679"),
         # Ordinary cases keep precision-padded fail_under formatting.
         (20.5, 20.6, 1, "total of 20.5 is less than fail-under=20.6"),
         (20.12345, 20.1235, 5, "total of 20.12345 is less than fail-under=20.12350"),

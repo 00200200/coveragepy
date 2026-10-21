@@ -1801,11 +1801,12 @@ class FailUnderTest(CoverageTest):
             (20.12339, "report --fail-under=20.1234 --precision=4", 0, ""),
             # Issue 2295: near-zero total + fractional fail_under at precision 0
             # must not claim "1 is less than 0".
+            (0.4, "report --fail-under=0.3 --precision=0", 0, ""),
             (
                 0.4,
-                "report --fail-under=0.3 --precision=0",
+                "report --fail-under=0.5 --precision=0",
                 2,
-                "Coverage failure: total of 0 is less than fail-under=0.3\n",
+                "Coverage failure: total of 0.4 is less than fail-under=0.5\n",
             ),
         ],
     )
@@ -1814,3 +1815,23 @@ class FailUnderTest(CoverageTest):
         with mock.patch("coverage.cmdline.Coverage", lambda *a, **kw: cov):
             self.command_line(cmd, ret)
         assert self.stdout() == msg
+
+    @pytest.mark.parametrize("command", ["report", "html", "xml", "json", "lcov"])
+    @pytest.mark.parametrize("fail_under, ret", [(0.3, 0), (0.5, 2)])
+    @pytest.mark.parametrize("from_config", [False, True])
+    def test_fractional_fail_under(
+        self,
+        command: str,
+        fail_under: float,
+        ret: int,
+        from_config: bool,
+    ) -> None:
+        cov = CoverageReportingFake(*(0.4,) * 5)
+        if from_config:
+            cov.set_option("report:fail_under", fail_under)
+        else:
+            command += f" --fail-under={fail_under}"
+        with mock.patch("coverage.cmdline.Coverage", lambda *a, **kw: cov):
+            self.command_line(command, ret)
+        expected = "Coverage failure: total of 0.4 is less than fail-under=0.5\n" if ret else ""
+        assert self.stdout() == expected
