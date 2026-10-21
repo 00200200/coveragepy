@@ -28,11 +28,12 @@ Unreleased
 - Binary wheels are now provided for iOS and Android. This allows the use of
   the optimized C tracer on mobile platforms.
 
-- Fix: ``--fail-under`` now uses at least the decimal precision of the threshold
-  for both the comparison and failure message.  With ``precision=0``, a total of
-  0.4 now passes ``--fail-under=0.3`` and fails ``--fail-under=0.5`` with the
-  message "total of 0.4 is less than fail-under=0.5".  Previously, the comparison
-  rounded the total to zero and the message could claim "1 is less than 0".
+- Fix: ``--fail-under`` now uses at least the decimal precision of the
+  threshold for both the comparison and failure message.  With ``precision=0``,
+  a total of 0.4 now passes ``--fail-under=0.3`` and fails ``--fail-under=0.5``
+  with the message "total of 0.4 is less than fail-under=0.5".  Previously, the
+  comparison rounded the total to zero and the message could claim
+  "1 is less than 0".
   Closes `issue 2295`_.
 
 - Fix: three or more levels of nested ``with`` statements could make a ``with``
