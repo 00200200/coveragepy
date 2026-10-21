@@ -532,6 +532,26 @@ class WithTest(CoverageTest):
         )
         assert self.stdout() == "8\n9\n"
 
+    def test_with_at_end_of_finally(self) -> None:
+        # https://github.com/coveragepy/coveragepy/issues/1987
+        # If the `try` clause can't complete normally, the `with` at the
+        # end of the `finally` clause has no arc onward from the `with` line.
+        self.check_coverage(
+            """\
+            import contextlib
+            def f():
+                try:
+                    return 4
+                finally:
+                    with contextlib.nullcontext():
+                        print(7)
+            f()
+            """,
+            branchz="",
+            branchz_missing="",
+        )
+        assert self.stdout() == "7\n"
+
     def test_multi_multiline_with_backslash(self) -> None:
         # https://github.com/coveragepy/coveragepy/issues/1880
         self.check_coverage(

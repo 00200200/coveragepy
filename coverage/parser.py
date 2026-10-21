@@ -790,7 +790,12 @@ class AstArcAnalyzer:
 
         fixers: dict[TArc, TArc | None] = {}
         for end, start in self.with_exits:
-            fixers[(end, start)] = (end, final_next(start))
+            # A `with` statement can have no onward arc, for example if it
+            # ends a `finally` clause whose `try` clause can't complete
+            # normally.  There is nowhere to redirect the jump to, so the
+            # arc is left alone.
+            if start in nexts:
+                fixers[(end, start)] = (end, final_next(start))
         for start, nxt in nexts.items():
             # Leaving a body on its own lines jumps back to the start, and that
             # jump is fixed above, so the arc onward from the start is
