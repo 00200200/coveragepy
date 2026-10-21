@@ -137,7 +137,6 @@ class PythonParser:
         self._with_jump_fixers: dict[TArc, TArc | None] = {}
 
         self._first_line_cache: dict[TLineNo, TLineNo] = {}
-        self._exit_counts: dict[TLineNo, int] | None = None
 
     def lines_matching(self, regex: str) -> set[TLineNo]:
         """Find the lines matching a regex.
@@ -399,20 +398,18 @@ class PythonParser:
         Excluded lines are excluded.
 
         """
-        if self._exit_counts is None:
-            exit_counts: dict[TLineNo, int] = collections.defaultdict(int)
-            for l1, l2 in self.arcs():
-                assert l1 > 0, f"{l1=} should be greater than zero in {self.filename}"
-                if l1 in self.excluded:
-                    # Don't report excluded lines as line numbers.
-                    continue
-                if l2 in self.excluded:
-                    # Arcs to excluded lines shouldn't count.
-                    continue
-                exit_counts[l1] += 1
-            self._exit_counts = exit_counts
+        exit_counts: dict[TLineNo, int] = collections.defaultdict(int)
+        for l1, l2 in self.arcs():
+            assert l1 > 0, f"{l1=} should be greater than zero in {self.filename}"
+            if l1 in self.excluded:
+                # Don't report excluded lines as line numbers.
+                continue
+            if l2 in self.excluded:
+                # Arcs to excluded lines shouldn't count.
+                continue
+            exit_counts[l1] += 1
 
-        return self._exit_counts
+        return exit_counts
 
     def _finish_action_msg(self, action_msg: str | None, end: TLineNo) -> str:
         """Apply some defaulting and formatting to an arc's description."""
@@ -445,10 +442,7 @@ class PythonParser:
 
     def arc_description(self, start: TLineNo, end: TLineNo) -> str:
         """Provide an English description of an arc's effect."""
-        if self._missing_arc_fragments is None:
-            self._analyze_ast()
-            assert self._missing_arc_fragments is not None
-
+        assert self._missing_arc_fragments is not None
         fragment_pairs = self._missing_arc_fragments.get((start, end), [(None, None)])
         action_msg = self._finish_action_msg(fragment_pairs[0][1], end)
         return action_msg
@@ -790,7 +784,12 @@ class AstArcAnalyzer:
 
         fixers: dict[TArc, TArc | None] = {}
         for end, start in self.with_exits:
-            fixers[(end, start)] = (end, final_next(start))
+            # A `with` statement can have no onward arc, for example if it
+            # ends a `finally` clause whose `try` clause can't complete
+            # normally.  There is nowhere to redirect the jump to, so the
+            # arc is left alone.
+            if start in nexts:
+                fixers[(end, start)] = (end, final_next(start))
         for start, nxt in nexts.items():
             # Leaving a body on its own lines jumps back to the start, and that
             # jump is fixed above, so the arc onward from the start is
