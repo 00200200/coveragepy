@@ -53,6 +53,13 @@ Unreleased
   <error_cant_combine>` in the docs now lists common causes and how to find the
   process that wrote the file.
 
+- Fix: at coverage totals close to 0 or 100, the XML report could get incorrect
+  ``line-rate`` values like ``8.333e-05`` or ``1``. This is now fixed, closing
+  `issue 2293`_ and `issue 2294`_.
+
+- Fix: using the C tracer, the refcount of ``None`` was mismanaged during
+  function calls, including comprehensions. This was unlikely to cause an
+  actual problem, but is now fixed. Thanks, Andrew Dalke.
 - Fixes for obscure but legal file names:
 
   - File names (and plugin names) can contain control characters, which are
@@ -93,6 +100,8 @@ Unreleased
 
 .. _issue 1987: https://github.com/coveragepy/coveragepy/issues/1987
 .. _issue 2277: https://github.com/coveragepy/coveragepy/issues/2277
+.. _issue 2293: https://github.com/coveragepy/coveragepy/issues/2293
+.. _issue 2294: https://github.com/coveragepy/coveragepy/issues/2294
 .. _issue 2314: https://github.com/coveragepy/coveragepy/issues/2314
 .. _issue 2335: https://github.com/coveragepy/coveragepy/issues/2335
 
