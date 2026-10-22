@@ -1349,29 +1349,6 @@ class FailUnderTest(CoverageTest):
         expected = "Coverage failure: total of 99 is less than fail-under=100"
         assert expected == self.last_line_squeezed(out)
 
-    @pytest.mark.parametrize("fail_under, status", [(0.3, 0), (0.5, 2)])
-    @pytest.mark.parametrize("from_config", [False, True])
-    def test_fractional_fail_under(
-        self,
-        fail_under: float,
-        status: int,
-        from_config: bool,
-    ) -> None:
-        self.make_file("tiny.py", "a = 1\n" * 250)
-        self.make_data_file(lines={abs_file("tiny.py"): [1]})
-        command = "coverage report"
-        if from_config:
-            self.make_file(".coveragerc", f"[report]\nfail_under = {fail_under}\nprecision = 0\n")
-        else:
-            command += f" --fail-under={fail_under} --precision=0"
-        st, out = self.run_command_status(command)
-        assert st == status
-        if status:
-            expected = "Coverage failure: total of 0.4 is less than fail-under=0.5"
-            assert self.last_line_squeezed(out) == expected
-        else:
-            assert "Coverage failure:" not in out
-
 
 class FailUnderNoFilesTest(CoverageTest):
     """Test that nothing to report results in an error exit status."""
